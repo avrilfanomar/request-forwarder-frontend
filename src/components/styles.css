@@ -1,0 +1,131 @@
+/* Tab styles for request detail page */
+.request-tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.tab-button:hover {
+  background-color: var(--hover-bg-color);
+}
+
+.tab-button.active {
+  border-bottom: 2px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+/* Table styles */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.table th,
+.table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.table th {
+  background-color: var(--table-header-bg);
+  font-weight: 600;
+}
+
+.table tr:hover {
+  background-color: var(--hover-bg-color);
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.detail-table th,
+.detail-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.detail-table th {
+  width: 150px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+/* Code and pre formatting */
+pre {
+  background-color: var(--code-bg-color);
+  padding: 15px;
+  border-radius: 4px;
+  overflow: auto;
+  font-family: monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  max-height: 400px;
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.request-body,
+.request-raw {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Section styles for request detail page */
+.section {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
+}
+
+/* Utility classes */
+.d-flex {
+  display: flex;
+}
+
+.justify-content-between {
+  justify-content: space-between;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.1rem;
+  }
+
+  .detail-table th {
+    width: 100px;
+  }
+
+  .section {
+    margin-bottom: 20px;
+  }
+}
