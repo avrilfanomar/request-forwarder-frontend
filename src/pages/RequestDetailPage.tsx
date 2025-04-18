@@ -1,7 +1,7 @@
 // noinspection SuspiciousTypeOfGuard
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { fetchRequest } from '../services/api';
 
 interface RequestDetail {
@@ -107,15 +107,73 @@ const RequestDetailPage: React.FC = () => {
     fetchRequestDetails();
   }, [token, id]);
 
-  const formatJSON = (jsonString: string): string => {
+  const isValidXML = (xmlString: string): boolean => {
+    try {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+      // Check if parsing was successful and no parsing errors were found
+      const parserError = xmlDoc.getElementsByTagName('parsererror');
+      return parserError.length === 0;
+    } catch {
+      return false;
+    }
+  };
+
+  const formatXML = (xmlString: string): string => {
+    try {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+
+      // Check if parsing was successful
+      const parserError = xmlDoc.getElementsByTagName('parsererror');
+      if (parserError.length > 0) {
+        return xmlString;
+      }
+
+      // Format the XML with proper indentation
+      const serializer = new XMLSerializer();
+      let formatted = '';
+      const xml = serializer.serializeToString(xmlDoc);
+
+      // Add indentation
+      let indent = '';
+      const tab = '  '; // 2 spaces for indentation
+
+      xml.split(/>\s*</).forEach(node => {
+        if (node.match(/^\/\w/)) {
+          // If this is a closing tag, decrease indentation
+          indent = indent.substring(tab.length);
+        }
+
+        formatted += indent + '<' + node + '>\n';
+
+        if (node.match(/^<?\w[^>]*[^\/]$/) && !node.startsWith('?')) {
+          // If this is an opening tag (but not a self-closing tag), increase indentation
+          indent += tab;
+        }
+      });
+
+      // Remove the added '>' at the beginning and '<' at the end
+      return formatted.substring(1, formatted.length - 2);
+    } catch {
+      return xmlString;
+    }
+  };
+
+  const formatBody = (bodyString: string): string => {
+    // First try to format as JSON
     try {
       // Check if the string is valid JSON
-      const parsedJSON = JSON.parse(jsonString);
+      const parsedJSON = JSON.parse(bodyString);
       // If it's valid JSON, prettify it
       return JSON.stringify(parsedJSON, null, 2);
     } catch {
-      // If it's not valid JSON, return the original string
-      return jsonString;
+      // If it's not valid JSON, try XML
+      if (isValidXML(bodyString)) {
+        return formatXML(bodyString);
+      }
+      // If it's neither valid JSON nor valid XML, return the original string
+      return bodyString;
     }
   };
 
@@ -220,7 +278,7 @@ const RequestDetailPage: React.FC = () => {
                 <div className="body-content">
                   {request.body ? (
                     <pre className="request-body">
-                      {formatJSON(request.body)}
+                      {formatBody(request.body)}
                     </pre>
                   ) : (
                     <p>No body content found.</p>
