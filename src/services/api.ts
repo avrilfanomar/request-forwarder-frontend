@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { executeWithRetry, formatErrorMessage, ApiError } from './apiUtils';
-import { TokenParams, RequestData, GetRequestsResponse } from '../types/api.types';
+import { TokenParams, GetRequestsResponse } from '../types/api.types';
 
 // Base URL for the API
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
@@ -110,33 +110,8 @@ export const getRequests = async (token: string, lastKnownId?: number, firstKnow
         ? await apiClient.get(url, { params }) 
         : await apiClient.get(url);
 
-      // Handle different response formats
-      if (typeof response.data === 'object') {
-        // If it's an object with numeric keys (like {1: {...}, 2: {...}}), return the full object
-        const numericKeys = Object.keys(response.data)
-          .filter(key => !isNaN(Number(key)));
-        if (numericKeys.length > 0) {
-          return response.data as Record<string, RequestData>;
-        }
-
-        // If it's an array, return the array itself (which should contain IDs)
-        if (Array.isArray(response.data)) {
-          return response.data as number[];
-        }
-
-        // If it has a length or count property, use that
-        if ('length' in response.data) {
-          return Number(response.data.length) || 0;
-        }
-        if ('count' in response.data) {
-          return Number(response.data.count) || 0;
-        }
-
-        // Last resort: count all keys
-        return Object.keys(response.data).length;
-      }
-
-      return Number(response.data) || 0; // Convert to number or default to 0
+      // Return the data directly, regardless of its format
+      return response.data;
     });
   } catch (error) {
     console.error('Error getting requests:', formatErrorMessage(error));
