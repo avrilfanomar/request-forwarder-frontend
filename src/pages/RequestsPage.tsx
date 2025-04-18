@@ -96,6 +96,7 @@ const RequestsPage: React.FC = () => {
   const [showTokenForm, setShowTokenForm] = useState<boolean>(false);
   const [newToken, setNewToken] = useState<string>('');
   const [lastKnownId, setLastKnownId] = useState<number | undefined>(undefined);
+  const [firstKnownId, setFirstKnownId] = useState<number | undefined>(undefined);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(() => {
@@ -149,7 +150,7 @@ const RequestsPage: React.FC = () => {
       isFetching = true;
       try {
         setLoading(true);
-        const response = await getRequests(token, lastKnownId);
+        const response = await getRequests(token, lastKnownId, firstKnownId);
 
         // Handle different response formats
         if (typeof response === 'object' && !Array.isArray(response)) {
@@ -163,9 +164,12 @@ const RequestsPage: React.FC = () => {
 
             // Find the highest request ID to update lastKnownId
             const highestId = Math.max(...requestIds);
+            const lowestId = Math.min(...requestIds);
             if (!lastKnownId || highestId > lastKnownId) {
               setLastKnownId(highestId);
             }
+            // Always update firstKnownId to the lowest ID in the current batch
+            setFirstKnownId(lowestId);
 
             // Process all requests from the response object
             for (const requestId of requestIds) {
@@ -237,12 +241,15 @@ const RequestsPage: React.FC = () => {
           const count = requestIds.length;
           setRequestCount(count);
 
-          // Find the highest request ID to update lastKnownId
+          // Find the highest and lowest request IDs to update lastKnownId and firstKnownId
           if (count > 0) {
             const highestId = Math.max(...requestIds);
+            const lowestId = Math.min(...requestIds);
             if (!lastKnownId || highestId > lastKnownId) {
               setLastKnownId(highestId);
             }
+            // Always update firstKnownId to the lowest ID in the current batch
+            setFirstKnownId(lowestId);
           }
 
           // We don't need to fetch individual requests anymore as the backend handles it
@@ -272,7 +279,7 @@ const RequestsPage: React.FC = () => {
       if (pollingInterval) clearInterval(pollingInterval);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, lastKnownId]); // Removed requests.length and pollingInterval from dependencies
+  }, [token, lastKnownId, firstKnownId]); // Removed requests.length and pollingInterval from dependencies
 
   // Reset to first page when requests array changes significantly
   useEffect(() => {
@@ -301,6 +308,22 @@ const RequestsPage: React.FC = () => {
       }
     }
   }, [requests, lastKnownId]);
+
+  // Update firstKnownId whenever requests array changes or current page changes
+  useEffect(() => {
+    if (requests.length > 0) {
+      const lowestId = Math.min(...requests.map(req => req.id));
+      const totalPages = Math.ceil(requests.length / itemsPerPage);
+
+      // Only use the lowest ID when the user is on the last page
+      if (currentPage === totalPages) {
+        setFirstKnownId(lowestId);
+      } else {
+        // Use -1 as firstKnownId unless customer wants to see older requests
+        setFirstKnownId(-1);
+      }
+    }
+  }, [requests, currentPage, itemsPerPage]);
 
   // Memoize the sorted and paginated requests to avoid unnecessary re-sorting
   const paginatedRequests = useMemo(() => {

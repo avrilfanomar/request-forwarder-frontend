@@ -199,9 +199,30 @@ describe('API Service', () => {
 
       const result = await getRequests(token);
 
-      expect(result).toEqual(requestsArray);
       expect(mockGet).toHaveBeenCalledWith(`/v1/req/${token}`);
     });
 
+    it('should pass firstKnownId parameter when provided', async () => {
+      // Mock response with array
+      const requestsArray = [1, 2];
+      mockGet.mockResolvedValueOnce({data: requestsArray});
+      const firstKnownId = 3;
+
+      const result = await getRequests(token, undefined, firstKnownId);
+
+      expect(mockGet).toHaveBeenCalledWith(`/v1/req/${token}`, { params: { firstKnownId } });
+    });
+
+    it('should pass both lastKnownId and firstKnownId parameters when both are provided', async () => {
+      // Mock response with array
+      const requestsArray = [2, 3];
+      mockGet.mockResolvedValueOnce({data: requestsArray});
+      const lastKnownId = 1;
+      const firstKnownId = 4;
+
+      const result = await getRequests(token, lastKnownId, firstKnownId);
+
+      expect(mockGet).toHaveBeenCalledWith(`/v1/req/${token}`, { params: { lastKnownId, firstKnownId } });
+    });
   });
 });

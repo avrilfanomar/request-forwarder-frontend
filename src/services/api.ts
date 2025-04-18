@@ -94,14 +94,21 @@ export const fetchRequest = async (token: string, id: number): Promise<string> =
  * 
  * @param token - The token to get requests for
  * @param lastKnownId - Optional parameter to fetch only requests newer than this ID
+ * @param firstKnownId - Optional parameter to fetch only requests older than this ID
  * @returns Response containing request data or IDs
  */
-export const getRequests = async (token: string, lastKnownId?: number): Promise<GetRequestsResponse> => {
+export const getRequests = async (token: string, lastKnownId?: number, firstKnownId?: number): Promise<GetRequestsResponse> => {
   try {
     return await executeWithRetry(async () => {
       const url = `/v1/req/${token}`;
-      const params = lastKnownId ? { lastKnownId } : undefined;
-      const response = await apiClient.get(url, { params });
+      const params: Record<string, number> = {};
+      if (lastKnownId !== undefined) params.lastKnownId = lastKnownId;
+      if (firstKnownId !== undefined) params.firstKnownId = firstKnownId;
+
+      // Only include params object if there are actual parameters
+      const response = Object.keys(params).length > 0 
+        ? await apiClient.get(url, { params }) 
+        : await apiClient.get(url);
 
       // Handle different response formats
       if (typeof response.data === 'object') {
