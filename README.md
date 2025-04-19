@@ -73,6 +73,7 @@ This application provides a user interface for interacting with the Request Forw
 
 ## Possible Future Enhancements
 
+- Replay selected request
 - User accounts and saved tokens
 - Request filtering and search
 - Custom request creation
