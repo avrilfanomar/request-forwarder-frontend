@@ -1,10 +1,12 @@
 // Mock axios and apiClient
 jest.mock('axios', () => {
   const originalAxios = jest.requireActual('axios');
-  return {
+  const mockGet = jest.fn();
+  const mockPost = jest.fn();
+  const mockAxios = {
     create: jest.fn().mockReturnValue({
-      get: jest.fn(),
-      post: jest.fn(),
+      get: mockGet,
+      post: mockPost,
       interceptors: {
         request: {use: jest.fn(), eject: jest.fn()},
         response: {use: jest.fn(), eject: jest.fn()},
@@ -13,22 +15,14 @@ jest.mock('axios', () => {
     isAxiosError: jest.fn().mockReturnValue(true),
     ...originalAxios
   };
+  // Expose the mock functions for tests to use
+  mockAxios.__getMockGet = () => mockGet;
+  mockAxios.__getMockPost = () => mockPost;
+  return mockAxios;
 });
 
-// Mock executeWithRetry to prevent actual retries in tests
-jest.mock('../../services/apiUtils', () => {
-  const originalModule = jest.requireActual('../../services/apiUtils');
-  return {
-    ...originalModule,
-    executeWithRetry: jest.fn().mockImplementation(async (fn) => {
-      try {
-        return await fn();
-      } catch (error) {
-        throw error;
-      }
-    })
-  };
-});
+// No need to mock executeWithRetry anymore as it has special handling for test environment
+// We'll just use the original implementation
 
 // Get mock functions after mocking
 import axios from 'axios';
@@ -36,9 +30,9 @@ import {captureRequest, fetchRequest, generateToken, getRequests} from '../../se
 import {ApiError} from '../../services/apiUtils';
 import {TokenParams} from '../../types/api.types';
 
-const apiClient = axios.create();
-const mockGet = apiClient.get as jest.Mock;
-const mockPost = apiClient.post as jest.Mock;
+// Get the mock functions using the helper methods
+const mockGet = (axios as any).__getMockGet();
+const mockPost = (axios as any).__getMockPost();
 
 describe('API Service', () => {
   // Reset mocks before each test

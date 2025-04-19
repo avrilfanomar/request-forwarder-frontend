@@ -36,7 +36,7 @@ describe('apiUtils', () => {
       // Mock a successful response
       const mockFn = jest.fn().mockResolvedValue('success');
 
-      const result = await executeWithRetry(mockFn);
+      const result = await executeWithRetry(mockFn, undefined, true);
 
       expect(result).toBe('success');
       expect(mockFn).toHaveBeenCalledTimes(1);
@@ -55,7 +55,7 @@ describe('apiUtils', () => {
         baseDelayMs: 10 // Use a small delay for faster tests
       };
 
-      const result = await executeWithRetry(mockFn, testRetryConfig);
+      const result = await executeWithRetry(mockFn, testRetryConfig, true);
 
       expect(result).toBe('success');
       expect(mockFn).toHaveBeenCalledTimes(3);
@@ -73,7 +73,7 @@ describe('apiUtils', () => {
         retryStatusCodes: [500]
       };
 
-      await expect(executeWithRetry(mockFn, testRetryConfig))
+      await expect(executeWithRetry(mockFn, testRetryConfig, true))
         .rejects.toThrow('Always fails');
 
       expect(mockFn).toHaveBeenCalledTimes(3); // Initial + 2 retries
@@ -95,7 +95,7 @@ describe('apiUtils', () => {
         retryStatusCodes: [429, 500] // 404 not included
       };
 
-      await expect(executeWithRetry(mockFn, testRetryConfig))
+      await expect(executeWithRetry(mockFn, testRetryConfig, true))
         .rejects.toThrow('Not Found');
 
       expect(mockFn).toHaveBeenCalledTimes(1); // No retries
@@ -119,7 +119,7 @@ describe('apiUtils', () => {
         retryStatusCodes: [429, 500] // 429 included
       };
 
-      const result = await executeWithRetry(mockFn, testRetryConfig);
+      const result = await executeWithRetry(mockFn, testRetryConfig, true);
 
       expect(result).toBe('success');
       expect(mockFn).toHaveBeenCalledTimes(2); // Initial + 1 retry
