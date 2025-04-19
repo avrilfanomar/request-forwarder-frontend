@@ -331,11 +331,6 @@ const RequestsPage: React.FC = () => {
       .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   }, [requests, currentPage, itemsPerPage]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('requestForwarderToken');
-    setToken(null);
-    navigate('/auth');
-  };
 
   const handleTokenInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewToken(e.target.value);
@@ -371,7 +366,6 @@ const RequestsPage: React.FC = () => {
       <div className="card">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h1>Captured Requests</h1>
-          <button onClick={handleLogout} className="btn-secondary">Logout</button>
         </div>
 
         {error && (
