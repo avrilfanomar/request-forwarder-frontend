@@ -22,7 +22,8 @@ import {
   executeWithRetry, 
   formatErrorMessage, 
   ApiError, 
-  DEFAULT_RETRY_CONFIG 
+  DEFAULT_RETRY_CONFIG,
+  delay
 } from '../../services/apiUtils';
 
 describe('apiUtils', () => {
@@ -167,6 +168,60 @@ describe('apiUtils', () => {
       const message = formatErrorMessage('Not an error');
 
       expect(message).toBe('An unknown error occurred');
+    });
+  });
+
+  describe('delay', () => {
+    it('should delay execution for the specified time', async () => {
+      jest.useFakeTimers();
+
+      const promise = delay(1000);
+
+      // Fast-forward time
+      jest.advanceTimersByTime(1000);
+
+      await promise; // This should resolve now
+
+      jest.useRealTimers();
+    });
+  });
+
+  describe('executeWithRetry in test environment', () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+
+    beforeEach(() => {
+      process.env.NODE_ENV = 'test';
+    });
+
+    afterEach(() => {
+      process.env.NODE_ENV = originalNodeEnv;
+    });
+
+    it('should not retry in test environment when forceRetry is false', async () => {
+      const mockFn = jest.fn()
+        .mockRejectedValueOnce(new Error('Fail 1'))
+        .mockResolvedValue('success');
+
+      await expect(executeWithRetry(mockFn)).rejects.toThrow('Fail 1');
+
+      // Should only be called once, no retries
+      expect(mockFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('should retry in test environment when forceRetry is true', async () => {
+      const mockFn = jest.fn()
+        .mockRejectedValueOnce(new Error('Fail 1'))
+        .mockResolvedValue('success');
+
+      const testRetryConfig = {
+        ...DEFAULT_RETRY_CONFIG,
+        baseDelayMs: 10 // Use a small delay for faster tests
+      };
+
+      const result = await executeWithRetry(mockFn, testRetryConfig, true);
+
+      expect(result).toBe('success');
+      expect(mockFn).toHaveBeenCalledTimes(2); // Initial + 1 retry
     });
   });
 });
