@@ -2,6 +2,21 @@ import axios from 'axios';
 import { executeWithRetry, formatErrorMessage, ApiError } from './apiUtils';
 import { TokenParams, GetRequestsResponse } from '../types/api.types';
 
+/**
+ * Helper function to handle API errors consistently
+ * 
+ * @param error - The error that occurred
+ * @param operation - Description of the operation that failed
+ * @throws ApiError with formatted message and status
+ */
+const handleApiError = (error: unknown, operation: string): never => {
+  console.error(`Error ${operation}:`, formatErrorMessage(error));
+  throw new ApiError(
+    `Failed to ${operation}: ${formatErrorMessage(error)}`,
+    axios.isAxiosError(error) ? error.response?.status : undefined
+  );
+};
+
 // Base URL for the API
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
@@ -33,11 +48,7 @@ export const generateToken = async (params: TokenParams): Promise<string> => {
       return response.data;
     });
   } catch (error) {
-    console.error('Error generating token:', formatErrorMessage(error));
-    throw new ApiError(
-      `Failed to generate token: ${formatErrorMessage(error)}`,
-      axios.isAxiosError(error) ? error.response?.status : undefined
-    );
+    return handleApiError(error, 'generate token');
   }
 };
 
@@ -55,11 +66,7 @@ export const captureRequest = async (token: string, data: string): Promise<strin
       return response.data;
     });
   } catch (error) {
-    console.error('Error capturing request:', formatErrorMessage(error));
-    throw new ApiError(
-      `Failed to capture request: ${formatErrorMessage(error)}`,
-      axios.isAxiosError(error) ? error.response?.status : undefined
-    );
+    return handleApiError(error, 'capture request');
   }
 };
 
@@ -81,11 +88,7 @@ export const fetchRequest = async (token: string, id: number): Promise<string> =
       return response.data;
     });
   } catch (error) {
-    console.error('Error fetching request:', formatErrorMessage(error));
-    throw new ApiError(
-      `Failed to fetch request ${id}: ${formatErrorMessage(error)}`,
-      axios.isAxiosError(error) ? error.response?.status : undefined
-    );
+    return handleApiError(error, `fetch request ${id}`);
   }
 };
 
@@ -114,11 +117,7 @@ export const getRequests = async (token: string, lastKnownId?: number, firstKnow
       return response.data;
     });
   } catch (error) {
-    console.error('Error getting requests:', formatErrorMessage(error));
-    throw new ApiError(
-      `Failed to get requests: ${formatErrorMessage(error)}`,
-      axios.isAxiosError(error) ? error.response?.status : undefined
-    );
+    return handleApiError(error, 'get requests');
   }
 };
 
